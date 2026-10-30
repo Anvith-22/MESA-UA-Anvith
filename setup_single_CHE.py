@@ -60,8 +60,8 @@ def mk_mass_folder(m, WHERE_TO_RUN):
 
 if __name__ == "__main__":
     # define grid
-    mass = np.linspace(30, 100, 71)
-    omega_div_omega_crit = [0.0] # np.linspace(0.5, 0.99, 11) #21)
+    mass = 50
+    omega_div_omega_crit = np.linspace(0.5, 1, 5, 11, 20) #21)
     # adapt to your location
     # folder names need to end with /
     ROOT = "/xdisk/mrenzo/mrenzo/CHE/CHE_jets/"

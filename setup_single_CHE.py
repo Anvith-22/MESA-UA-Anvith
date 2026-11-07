@@ -54,7 +54,7 @@ def mk_rot_folder(rot, mass, WHERE_TO_RUN):
 if __name__ == "__main__":
     # define grid: fixed mass, varying rotation only
     mass = 50.0  # Msun
-    omega_div_omega_crit = np.linspace(0.5, 1, 11)  # 0.50, 0.55, ..., 1.00
+    omega_div_omega_crit = np.linspace(0.5, 11, 1.5)  # 0.50, 0.55, ..., 1.00
     # adapt to your location
     # folder names need to end with /
     ROOT = "/home/u21/akianvith/Crit_Rotational/"

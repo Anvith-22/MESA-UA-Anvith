@@ -23,55 +23,48 @@ __author__ = ["Mathieu Renzo <mrenzo@arizona.edu>"]
 
 import sys
 import os
-import glob
-import math
 import numpy as np
 from utilsLib import checkFolder, gitPush
 from joblib import Parallel, delayed
 
 
-def mk_mass_folder(m, WHERE_TO_RUN):
-    """ make folder for one mass and various rotation rates"""
-    MASS_FOLDER = WHERE_TO_RUN+f"{m:.2f}"+"/"
-    os.system("mkdir -p "+MASS_FOLDER)
-    for rot in omega_div_omega_crit:
-        DESTINATION = MASS_FOLDER+'rot_'+f"{rot:.2f}"+"/"
-        os.system("mkdir -p "+DESTINATION)
-        os.chdir(DESTINATION)
-        # # copy stuff
-        copy = "cp -r " + ROOT + TEMPLATE + "/* ./"
-        os.system(copy)
-        # change mass, rotation, etc...
-        with open(DESTINATION+"/inlist1", "r") as I:
-            inlist = I.read()
-        inlist = inlist.replace("MASS", f"{m:.2f}")
-        inlist = inlist.replace("OMEGA_DIV_OMEGA_CRIT", f"{rot:.2f}")
-        with open(DESTINATION+"/inlist1", "w") as I:
-            I.write(inlist)
-        # change rn file for email subject
-        with open(DESTINATION+"/rn", "r") as I:
-            rn = I.read()
-        rn = rn.replace("MASS", f"{m:.2f}")
-        rn = rn.replace("OMEGA_DIV_OMEGA_CRIT", f"{rot:.2f}")
-        with open(DESTINATION+"/rn", "w") as I:
-            I.write(rn)
-    print("done mass:", m, "at", MASS_FOLDER)
+def mk_rot_folder(rot, mass, WHERE_TO_RUN):
+    """ make folder for one rotation rate (mass is fixed) """
+    DESTINATION = WHERE_TO_RUN + "rot_" + f"{rot:.2f}" + "/"
+    os.system("mkdir -p " + DESTINATION)
+    # copy template (including hidden files)
+    os.system("cp -r " + ROOT + TEMPLATE + "/. " + DESTINATION)
+    # set mass and rotation in the inlist
+    with open(DESTINATION + "inlist1", "r") as I:
+        inlist = I.read()
+    inlist = inlist.replace("MASS", f"{mass:.2f}")
+    inlist = inlist.replace("OMEGA_DIV_OMEGA_CRIT", f"{rot:.2f}")
+    with open(DESTINATION + "inlist1", "w") as I:
+        I.write(inlist)
+    # change rn file for email subject
+    with open(DESTINATION + "rn", "r") as I:
+        rn = I.read()
+    rn = rn.replace("MASS", f"{mass:.2f}")
+    rn = rn.replace("OMEGA_DIV_OMEGA_CRIT", f"{rot:.2f}")
+    with open(DESTINATION + "rn", "w") as I:
+        I.write(rn)
+    print("done rotation:", f"{rot:.2f}", "at", DESTINATION)
 
 
 if __name__ == "__main__":
-    # define grid
-    mass = 50
-    omega_div_omega_crit = np.linspace(0.5, 1, 5, 11, 20) #21)
+    # define grid: fixed mass, varying rotation only
+    mass = 50.0  # Msun
+    omega_div_omega_crit = np.linspace(0.5, 1, 11)  # 0.50, 0.55, ..., 1.00
     # adapt to your location
     # folder names need to end with /
-    ROOT = "/xdisk/mrenzo/mrenzo/CHE/CHE_jets/"
-    TEMPLATE = "single_CHE_template/"
-    WHERE_TO_RUN = "/xdisk/mrenzo/mrenzo/CHE/ZAMS_R_non_rot/"
+    ROOT = "/home/u21/akianvith/Crit_Rotational/"
+    TEMPLATE = "Template/"
+    WHERE_TO_RUN = "/home/u21/akianvith/Crit_Rotational/Rotational_Crit_Evolution/"
     #
-    print(mass)
-    print(omega_div_omega_crit)
-    print("number of models:", len(mass)*len(omega_div_omega_crit))
-    print("template:", ROOT+TEMPLATE)
+    print("mass:", mass)
+    print("omega/omega_crit:", omega_div_omega_crit)
+    print("number of models:", len(omega_div_omega_crit))
+    print("template:", ROOT + TEMPLATE)
     print("destination:", WHERE_TO_RUN)
     go_on = input("should we go on? [Y/n]")
     if (go_on == "Y") or (go_on == "y"):
@@ -86,23 +79,24 @@ if __name__ == "__main__":
         sys.exit()
     # push to repo
     gitPush(ROOT, template=TEMPLATE, description=sys.argv[1])
-    os.system("mkdir -p "+WHERE_TO_RUN)
+    os.system("mkdir -p " + WHERE_TO_RUN)
     # save template
     os.system(
         "tar -czf template.tar.xz "
         + ROOT + TEMPLATE
         + " && mv template.tar.xz "
         + WHERE_TO_RUN)
-    Parallel(n_jobs=10)(delayed(mk_mass_folder)(m, WHERE_TO_RUN) for m in mass)
+    Parallel(n_jobs=10)(
+        delayed(mk_rot_folder)(rot, mass, WHERE_TO_RUN)
+        for rot in omega_div_omega_crit)
     # copy local slurm script and edit it
     with open('./run_grid.slurm', 'r') as f:
         runfile = f.read()
     runfile = runfile.replace("GRID_NAME", str(sys.argv[1]).replace(" ", "_"))
-    runfile = runfile.replace("N_STARS", str(len(mass)*len(omega_div_omega_crit)))
-    runfile = runfile.replace("LIST_MASS", ' '.join(f"{m:.2f}" for m in mass))
+    runfile = runfile.replace("N_STARS", str(len(omega_div_omega_crit)))
     runfile = runfile.replace("LIST_ROT", ' '.join(f"{rot:.2f}" for rot in omega_div_omega_crit))
-    runfile = runfile.replace("WHERE_TO_RUN", WHERE_TO_RUN)
-    with open(WHERE_TO_RUN+'/run_grid.slurm', 'w') as f:
+    runfile = runfile.replace("WHERE_TO_RUN", WHERE_TO_RUN.rstrip("/"))
+    with open(WHERE_TO_RUN + 'run_grid.slurm', 'w') as f:
         f.write(runfile)
     print()
     print("Done setting up a grid of single CHE models at:")

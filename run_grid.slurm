@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=GRID_NAME
-#SBATCH --account=<your_slurm_account>
+#SBATCH --account=binboom
 #SBATCH --partition=standard
 #SBATCH --output=out_%A_%a.out
 #SBATCH --error=error_%A_%a.err
@@ -10,7 +10,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mail-type=END
-#SBATCH --mail-user=you@arizona.edu
+#SBATCH --mail-user=akianvith@arizona.edu
 #SBATCH --time=48:00:00
 
 # filled in by the setup script: the only thing that varies is rotation

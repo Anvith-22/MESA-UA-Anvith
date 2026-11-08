@@ -34,11 +34,11 @@ def mk_rot_folder(rot, mass, WHERE_TO_RUN):
     # copy template (including hidden files)
     os.system("cp -r " + ROOT + TEMPLATE + "/. " + DESTINATION)
     # set mass and rotation in the inlist
-    with open(DESTINATION + "inlist1", "r") as I:
+    with open(DESTINATION + "inlist_project", "r") as I:
         inlist = I.read()
     inlist = inlist.replace("MASS", f"{mass:.2f}")
     inlist = inlist.replace("OMEGA_DIV_OMEGA_CRIT", f"{rot:.2f}")
-    with open(DESTINATION + "inlist1", "w") as I:
+    with open(DESTINATION + "inlist_project", "w") as I:
         I.write(inlist)
     # change rn file for email subject
     with open(DESTINATION + "rn", "r") as I:
@@ -53,7 +53,7 @@ def mk_rot_folder(rot, mass, WHERE_TO_RUN):
 if __name__ == "__main__":
     # define grid: fixed mass, varying rotation only
     mass = 50.0  # Msun
-    omega_div_omega_crit = np.linspace(0.5, 11, 1.5)  # 0.50, 0.55, ..., 1.00
+    omega_div_omega_crit = np.linspace(0, 10, 1)  # 0.50, 0.55, ..., 1.00
     # adapt to your location
     # folder names need to end with /
     ROOT = "/home/u21/akianvith/Crit_Rotational/"
@@ -74,8 +74,6 @@ if __name__ == "__main__":
                sys.exit()
     else:
         sys.exit()
-    # push to repo
-    gitPush(ROOT, template=TEMPLATE, description=sys.argv[1])
     os.system("mkdir -p " + WHERE_TO_RUN)
     # save template
     os.system(

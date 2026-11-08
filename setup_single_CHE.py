@@ -24,7 +24,6 @@ __author__ = ["Mathieu Renzo <mrenzo@arizona.edu>"]
 import sys
 import os
 import numpy as np
-from utilsLib import checkFolder, gitPush
 from joblib import Parallel, delayed
 
 
@@ -68,13 +67,11 @@ if __name__ == "__main__":
     print("destination:", WHERE_TO_RUN)
     go_on = input("should we go on? [Y/n]")
     if (go_on == "Y") or (go_on == "y"):
-        content = checkFolder(WHERE_TO_RUN)
-        if content:  # not empty
-            print(str(WHERE_TO_RUN), "is not empty")
-            print(content)
-            go_on = input("Go on anyways? [Y/y]")
-            if go_on != "Y" and go_on != "y":
-                sys.exit()
+        if os.path.isdir(WHERE_TO_RUN) and os.listdir(WHERE_TO_RUN):
+           print(str(WHERE_TO_RUN), "is not empty")
+           go_on = input("Go on anyways? [Y/y]")
+           if go_on != "Y" and go_on != "y":
+               sys.exit()
     else:
         sys.exit()
     # push to repo
